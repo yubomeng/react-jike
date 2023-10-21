@@ -43,7 +43,7 @@ const Publish = () => {
             content,
             type: 1,
             cover: {
-                type: 0,  // 1:自动  0：无图  1：1张   3：3张
+                type: 1,  // 1:自动  0：无图  1：1张   3：3张
                 images: []
             },
             channel_id,
@@ -62,7 +62,7 @@ const Publish = () => {
     // 切换图片封面类型
     const [imageType, setImageType] = useState(1)  // 1 默认单图
     const onTypeChange = (e) => {
-        console.log('切换封面了',e.target.value);
+        console.log('切换封面了', e.target.value);
         setImageType(e.target.value)
     }
     return (
@@ -102,9 +102,10 @@ const Publish = () => {
                     <Form.Item label="封面">
                         <Form.Item name="type">
                             <Radio.Group onChange={onTypeChange}>
-                                <Radio value={1}>单图</Radio>
-                                <Radio value={3}>三图</Radio>
+                                {/* value的值 0： 无图  1： 1张  10： 10张 */}
                                 <Radio value={0}>无图</Radio>
+                                <Radio value={1}>单图</Radio>
+                                <Radio value={10}>多图</Radio>  
                             </Radio.Group>
                         </Form.Item>
                         {/* 
@@ -119,6 +120,7 @@ const Publish = () => {
                                     action={'http://geek.itheima.net/v1_0/upload'}
                                     name="image"
                                     onChange={onChange}
+                                    maxCount={imageType}
                                 >
                                     <div style={{ marginTop: 8 }}>
                                         <PlusOutlined />
