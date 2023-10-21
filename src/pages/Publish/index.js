@@ -7,7 +7,8 @@ import {
     Input,
     Upload,
     Space,
-    Select
+    Select,
+    message
 } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
@@ -36,6 +37,8 @@ const Publish = () => {
     // 提交表单
     const onFinish = (formValue) => {
         console.log(formValue);
+        // 校验封面类型imageType是否和实际的图片列表imageList数量是相等的
+        if (imageList.length !== imageType) return message.warning('封面类型和图片数量不匹配')
         // 1.按照接口文档的格式处理收集到的表单数据
         const { channel_id, content, title } = formValue
         const reqData = {
@@ -43,13 +46,14 @@ const Publish = () => {
             content,
             type: 1,
             cover: {
-                type: 1,  // 1:自动  0：无图  1：1张   3：3张
-                images: []
-            },
+                type: imageType,  // 封面格式
+                images: imageList.map(item => item.response.data.url)        // 图片列表
+            }, 
             channel_id,
         }
         // 2.调用接口提交
         createArticleAPI(reqData)
+        message.success('发布文章成功')
     }
 
     // 上传回调
@@ -57,10 +61,11 @@ const Publish = () => {
     const onChange = (value) => {
         console.log('正在上传中', value);
         setImageList(value.fileList)
+        
     }
 
     // 切换图片封面类型
-    const [imageType, setImageType] = useState(1)  // 1 默认单图
+    const [imageType, setImageType] = useState(0)  // 0 默认无图
     const onTypeChange = (e) => {
         console.log('切换封面了', e.target.value);
         setImageType(e.target.value)
@@ -79,7 +84,7 @@ const Publish = () => {
                 <Form
                     labelCol={{ span: 4 }}
                     wrapperCol={{ span: 16 }}
-                    initialValues={{ type: 1 }}  // 1 默认单图
+                    initialValues={{ type: 0 }}  // 0 默认无图
                     onFinish={onFinish}
                 >
                     <Form.Item
@@ -102,10 +107,10 @@ const Publish = () => {
                     <Form.Item label="封面">
                         <Form.Item name="type">
                             <Radio.Group onChange={onTypeChange}>
-                                {/* value的值 0： 无图  1： 1张  10： 10张 */}
+                                {/* value的值 0： 无图  1： 1张  3： 3张 */}
                                 <Radio value={0}>无图</Radio>
                                 <Radio value={1}>单图</Radio>
-                                <Radio value={10}>多图</Radio>  
+                                <Radio value={3}>三图</Radio>  
                             </Radio.Group>
                         </Form.Item>
                         {/* 
