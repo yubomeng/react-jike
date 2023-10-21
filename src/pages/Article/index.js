@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Card, Breadcrumb, Form, Button, Radio, DatePicker, Select } from 'antd'
+import { Card, Breadcrumb, Form, Button, Radio, DatePicker, Select, Popconfirm } from 'antd'
 // 引入汉化包-时间选择器显示中文
 import locale from 'antd/es/date-picker/locale/zh_CN'
 // 导入资源
@@ -8,14 +8,14 @@ import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import img404 from '@/assets/error.png'
 import { useChannel } from '@/hooks/useChannel'
 import { useEffect, useState } from 'react'
-import { getArticleListAPI } from '@/apis/article'
+import { delArticleAPI, getArticleListAPI } from '@/apis/article'
 
 
 const { Option } = Select
 const { RangePicker } = DatePicker
 
 const Article = () => {
-    const { channelList} = useChannel()
+    const { channelList } = useChannel()
 
 
     // 准备列数据
@@ -68,12 +68,21 @@ const Article = () => {
                 return (
                     <Space size="middle">
                         <Button type="primary" shape="circle" icon={<EditOutlined />} />
-                        <Button
-                            type="primary"
-                            danger
-                            shape="circle"
-                            icon={<DeleteOutlined />}
-                        />
+                        {/* 气泡确认框 */}
+                        <Popconfirm
+                            title="删除文章"
+                            description="确认要删除当前文章吗?"
+                            onConfirm={() =>onConfirm(data)}
+                            okText="Yes"
+                            cancelText="No"
+                        >
+                            <Button
+                                type="primary"
+                                danger
+                                shape="circle"
+                                icon={<DeleteOutlined />}
+                            />
+                        </Popconfirm>
                     </Space>
                 )
             }
@@ -117,7 +126,7 @@ const Article = () => {
         getList()
     }, [reqData])
 
-    
+
     // 2. 获取筛选数据
     const onFinish = (formValue) => {
         console.log(formValue);
@@ -142,6 +151,21 @@ const Article = () => {
             page
         })
     }
+
+    // 删除文章
+    const onConfirm = async (data) => {
+        console.log('删除被点击了',data);
+        await delArticleAPI(data.id)
+        // 重新渲染
+        const newReqData = { ...reqData }
+        const newData = list.filter(item => item.id !== data.id)
+        if (newData.length === 0 && newReqData.page > 1) {
+            newReqData.page--
+        }
+        setReqData(newReqData)
+    }
+
+
     return (
         <div>
             <Card
@@ -165,11 +189,10 @@ const Article = () => {
                     <Form.Item label="频道" name="channel_id">
                         <Select
                             placeholder="请选择文章频道"
-                            defaultValue="lucy"
                             style={{ width: 120 }}
                         >
                             {channelList.map(item => <Option key={item.id} value={item.id}>{item.name}</Option>)}
-                            
+
                         </Select>
                     </Form.Item>
 
