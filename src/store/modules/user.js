@@ -1,5 +1,5 @@
 // 和用户相关的状态管理
-import { request } from "@/utils";
+import { removeToken, request } from "@/utils";
 import { createSlice } from "@reduxjs/toolkit";
 import { setToken as _setToken, getToken } from '@/utils'
 const userStore = createSlice({
@@ -18,12 +18,17 @@ const userStore = createSlice({
         },
         setUserInfo(state, action) {
             state.userInfo = action.payload
+        },
+        clearUSerInfo(state) {
+            state.token =''
+            state.userInfo = {}
+            removeToken()
         }
     }
 })
 
 // 解构出actionCreater
-const { setToken, setUserInfo } = userStore.actions
+const { setToken, setUserInfo, clearUSerInfo } = userStore.actions
 
 // 获取reducer函数
 const userReducer = userStore.reducer
@@ -46,6 +51,6 @@ const fetchUserInfo = () => {
     }
 }
 
-export { fetchLogin, fetchUserInfo, setToken }
+export { fetchLogin, fetchUserInfo, clearUSerInfo, setToken }
 
 export default userReducer
