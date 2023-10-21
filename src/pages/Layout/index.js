@@ -2,7 +2,7 @@
  * @Author: yubo 3105107535@qq.com
  * @Date: 2023-10-20 18:04:59
  * @LastEditors: yubo 3105107535@qq.com
- * @LastEditTime: 2023-10-21 09:58:47
+ * @LastEditTime: 2023-10-21 10:10:43
  * @FilePath: \react-jike\src\pages\Layout\index.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -14,29 +14,36 @@ import {
     LogoutOutlined,
 } from '@ant-design/icons'
 import './index.scss'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
 
 const { Header, Sider } = Layout
 
 const items = [
     {
         label: '首页',
-        key: '1',
+        key: '/',
         icon: <HomeOutlined />,
     },
     {
         label: '文章管理',
-        key: '2',
+        key: '/article',
         icon: <DiffOutlined />,
     },
     {
         label: '创建文章',
-        key: '3',
+        key: '/publish',
         icon: <EditOutlined />,
     },
 ]
 
 const GeekLayout = () => {
+    const navigate = useNavigate()
+    const onMenuClick = (route) => {
+        // console.log("菜单被点击了", route);
+        const path = route.key
+        navigate(path)
+    }
+
     return (
         <Layout>
             <Header className="header">
@@ -57,6 +64,7 @@ const GeekLayout = () => {
                         theme="dark"
                         defaultSelectedKeys={['1']}
                         items={items}
+                        onClick={onMenuClick}
                         style={{ height: '100%', borderRight: 0 }}></Menu>
                 </Sider>
                 <Layout className="layout-content" style={{ padding: 20 }}>
