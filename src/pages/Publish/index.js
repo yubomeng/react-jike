@@ -11,12 +11,12 @@ import {
     message
 } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import './index.scss'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 import { useEffect, useState } from 'react'
-import { createArticleAPI, getArticleById} from '@/apis/article'
+import { createArticleAPI, getArticleById, updateArticleAPI } from '@/apis/article'
 import { useChannel } from '@/hooks/useChannel'
 
 
@@ -24,8 +24,8 @@ const { Option } = Select
 
 const Publish = () => {
     // 获取频道列表
-    const {channelList } = useChannel()
-    
+    const { channelList } = useChannel()
+    const navigate = useNavigate()
     // 提交表单
     const onFinish = (formValue) => {
         console.log(formValue);
@@ -39,13 +39,26 @@ const Publish = () => {
             type: 1,
             cover: {
                 type: imageType,  // 封面格式
-                images: imageList.map(item => item.response.data.url)        // 图片列表
-            }, 
+                images: imageList.map(item => {
+                    if (item.response) {
+                        return item.response.data.url
+                    } else {
+                        return item.url
+                    }
+                })        // 图片列表
+            },
             channel_id,
         }
         // 2.调用接口提交
-        createArticleAPI(reqData)
+        // 调用不同的接口 新增 - 新增接口 更新 - 更新接口 id
+        if (articleId) {
+            // 更新接口
+            updateArticleAPI({ ...reqData , id: articleId})
+        } else {
+            createArticleAPI(reqData)
+        }
         message.success('发布文章成功')
+        navigate('/article')
     }
 
     // 上传回调
@@ -53,7 +66,7 @@ const Publish = () => {
     const onChange = (value) => {
         console.log('正在上传中', value);
         setImageList(value.fileList)
-        
+
     }
 
     // 切换图片封面类型
@@ -64,7 +77,7 @@ const Publish = () => {
     }
 
     // 回填数据
-    const [searchParams]  = useSearchParams()
+    const [searchParams] = useSearchParams()
     const articleId = searchParams.get('id')
     // 获取实例
     const [form] = Form.useForm()
@@ -74,7 +87,7 @@ const Publish = () => {
         async function getArticleDetail() {
             const res = await getArticleById(articleId)
             const data = res.data
-            const {cover} = data
+            const { cover } = data
             form.setFieldsValue({
                 ...data,
                 type: cover.type
@@ -90,7 +103,7 @@ const Publish = () => {
         // 只要有id的时候才能调用此函数回填
         if (articleId) getArticleDetail()
         //2.调用实例方法，完成回填
-    },[articleId,form])
+    }, [articleId, form])
 
 
     return (
@@ -125,7 +138,7 @@ const Publish = () => {
                     >
                         <Select placeholder="请选择文章频道" style={{ width: 400 }}>
                             {/* value属性 用户选中之后会自动收集起来作为接口的提交字段 */}
-                            {channelList.map(item => <Option key={item.id} value={item.id}>{item.name}</Option>)}   
+                            {channelList.map(item => <Option key={item.id} value={item.id}>{item.name}</Option>)}
                         </Select>
                     </Form.Item>
                     <Form.Item label="封面">
@@ -134,7 +147,7 @@ const Publish = () => {
                                 {/* value的值 0： 无图  1： 1张  3： 3张 */}
                                 <Radio value={0}>无图</Radio>
                                 <Radio value={1}>单图</Radio>
-                                <Radio value={3}>三图</Radio>  
+                                <Radio value={3}>三图</Radio>
                             </Radio.Group>
                         </Form.Item>
                         {/* 
@@ -142,22 +155,22 @@ const Publish = () => {
                             showUploadList:控制显示上传列表
                          */}
                         {
-                            imageType > 0 && 
-                                <Upload
-                                    listType="picture-card"
-                                    showUploadList
-                                    action={'http://geek.itheima.net/v1_0/upload'}
-                                    name="image"
-                                    onChange={onChange}
-                                    maxCount={imageType}
-                                    fileList={imageList}
-                                >
-                                    <div style={{ marginTop: 8 }}>
-                                        <PlusOutlined />
-                                    </div>
-                                </Upload>
+                            imageType > 0 &&
+                            <Upload
+                                listType="picture-card"
+                                showUploadList
+                                action={'http://geek.itheima.net/v1_0/upload'}
+                                name="image"
+                                onChange={onChange}
+                                maxCount={imageType}
+                                fileList={imageList}
+                            >
+                                <div style={{ marginTop: 8 }}>
+                                    <PlusOutlined />
+                                </div>
+                            </Upload>
                         }
-                        
+
                     </Form.Item>
                     <Form.Item
                         label="内容"
@@ -170,7 +183,7 @@ const Publish = () => {
                             theme="snow"
                             placeholder="请输入文章内容"
                         />
-                        
+
                     </Form.Item>
 
                     <Form.Item wrapperCol={{ offset: 4 }}>
